@@ -211,7 +211,7 @@ namespace Netcode.Rollback
     }
 
     public interface IInput<TSelf> : IEquatable<TSelf>, ISerializable { }
-    public interface IState<TSelf>: ISerializable { }
+    public interface IState<TSelf> { }
     public interface IAddress<TSelf> : IEquatable<TSelf> { }
 
     public interface INonBlockingSocket<TAddress>

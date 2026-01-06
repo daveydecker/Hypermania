@@ -12,7 +12,7 @@ namespace Netcode.Rollback.Sessions
     }
 
     public class SpectatorSession<TState, TInput, TAddress>
-        where TState : struct
+        where TState : IState<TState>
         where TInput : IInput<TInput>
     {
         const uint NORMAL_SPEED = 1;
@@ -102,7 +102,7 @@ namespace Netcode.Rollback.Sessions
         public Frame CurrentFrame => _currentFrame;
         public int NumPlayers => _numPlayers;
 
-        public (TInput input, InputStatus status)[] InputsAtFrame(Frame frameToGrab)
+        private (TInput input, InputStatus status)[] InputsAtFrame(Frame frameToGrab)
         {
             Assert.IsTrue(frameToGrab != Frame.NullFrame);
             PlayerInput<TInput>[] inputs = _inputs[frameToGrab.No % SpectatorConstants.SPECTATOR_BUFFER_SIZE];
@@ -124,7 +124,7 @@ namespace Netcode.Rollback.Sessions
             return res;
         }
 
-        public void HandleEvent(Event<TInput> ev, TAddress addr)
+        private void HandleEvent(Event<TInput> ev, TAddress addr)
         {
             switch (ev.Kind)
             {

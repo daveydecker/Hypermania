@@ -4,17 +4,29 @@ using UnityEngine.Assertions;
 
 namespace Netcode.Rollback.Network
 {
-    public class Compression
+    public static class Compression
     {
         private const int MAX_SCRATCH_BYTES = 256 * 1024;
 
-        private readonly byte[] _scratch = new byte[MAX_SCRATCH_BYTES];
+        [ThreadStatic]
+        private static byte[] _scratch;
 
-        public byte[] Encode(in InputBytes refInput, IEnumerable<InputBytes> pendingInput)
+        private static byte[] Scratch
+        {
+            get
+            {
+                if (_scratch == null)
+                    _scratch = new byte[MAX_SCRATCH_BYTES];
+                return _scratch;
+            }
+        }
+
+        public static byte[] Encode(in InputBytes refInput, IEnumerable<InputBytes> pendingInput)
         {
             if (pendingInput == null) throw new ArgumentNullException(nameof(pendingInput));
             Assert.AreNotEqual(refInput.Bytes.Length, 0, "reference input cannot be empty");
 
+            byte[] scratch = Scratch;
             int outPtr = 0;
 
             bool hasRun = false;
@@ -25,12 +37,11 @@ namespace Netcode.Rollback.Network
             {
                 if (!hasRun) return;
 
-                // Each run expands to exactly two bytes: (count, value)
-                if (outPtr + 2 > _scratch.Length)
+                if (outPtr + 2 > scratch.Length)
                     throw new InvalidOperationException($"Compression scratch overflow (>{MAX_SCRATCH_BYTES} bytes).");
 
-                _scratch[outPtr++] = (byte)runCount;
-                _scratch[outPtr++] = runValue;
+                scratch[outPtr++] = (byte)runCount;
+                scratch[outPtr++] = runValue;
 
                 hasRun = false;
                 runCount = 0;
@@ -72,15 +83,16 @@ namespace Netcode.Rollback.Network
             FlushRun();
 
             byte[] res = new byte[outPtr];
-            Buffer.BlockCopy(_scratch, 0, res, 0, outPtr);
+            Buffer.BlockCopy(scratch, 0, res, 0, outPtr);
             return res;
         }
 
-        public byte[][] Decode(in InputBytes refInput, ReadOnlySpan<byte> data)
+        public static byte[][] Decode(in InputBytes refInput, ReadOnlySpan<byte> data)
         {
             Assert.AreNotEqual(refInput.Bytes.Length, 0, "reference input cannot be empty");
 
-            int decodedLen = RleDecodeToScratch(data);
+            byte[] scratch = Scratch;
+            int decodedLen = RleDecodeToScratch(data, scratch);
 
             Assert.AreEqual(
                 decodedLen % refInput.Bytes.Length,
@@ -97,7 +109,7 @@ namespace Netcode.Rollback.Network
                 byte[] outInp = new byte[refInput.Bytes.Length];
                 for (int i = 0; i < refInput.Bytes.Length; i++)
                 {
-                    outInp[i] = (byte)(refInput.Bytes[i] ^ _scratch[srcBase + i]);
+                    outInp[i] = (byte)(refInput.Bytes[i] ^ scratch[srcBase + i]);
                 }
 
                 res[inp] = outInp;
@@ -107,7 +119,7 @@ namespace Netcode.Rollback.Network
             return res;
         }
 
-        private int RleDecodeToScratch(ReadOnlySpan<byte> rle)
+        private static int RleDecodeToScratch(ReadOnlySpan<byte> rle, byte[] scratch)
         {
             Assert.AreEqual(rle.Length % 2, 0, "RLE data length must be even (count,value pairs)");
 
@@ -118,14 +130,13 @@ namespace Netcode.Rollback.Network
                 byte count = rle[i];
                 byte value = rle[i + 1];
 
-                // Zero-length runs are invalid
                 Assert.IsTrue(count != 0, "RLE run count cannot be 0");
 
-                if (outPtr + count > _scratch.Length)
+                if (outPtr + count > scratch.Length)
                     throw new InvalidOperationException($"Decompression scratch overflow (>{MAX_SCRATCH_BYTES} bytes).");
 
                 for (int k = 0; k < count; k++)
-                    _scratch[outPtr++] = value;
+                    scratch[outPtr++] = value;
             }
 
             return outPtr;

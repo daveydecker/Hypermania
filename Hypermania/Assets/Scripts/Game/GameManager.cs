@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Game.Sim;
+using Game.View;
+using Netcode.P2P;
 using Netcode.Rollback;
-using Netcode.Rollback.Sessions;
 using Steamworks;
 using UnityEngine;
 
@@ -11,28 +11,37 @@ namespace Game
 {
     public class GameManager : MonoBehaviour
     {
-        private GameState _curState;
-        private P2PSession<GameState, Input, CSteamID> _session;
+        [SerializeField] private GameRunner _runner;
+        private SteamMatchmakingClient _matchmakingClient;
+        private P2PClient _p2pClient;
+        private List<(PlayerHandle handle, PlayerKind playerKind, SteamNetworkingIdentity netId)> _players;
 
-        private bool _playing;
-        private uint _waitRemaining;
-        private SteamMatchmakingClient _client;
+        public const int TPS = 64;
 
-        void OnDestroy()
+        void OnEnable()
         {
-            _playing = false;
+            _matchmakingClient = new SteamMatchmakingClient();
+            _matchmakingClient.OnStartWithPlayers += OnStartWithPlayers;
+
+            _p2pClient = null;
+            _players = new List<(PlayerHandle handle, PlayerKind playerKind, SteamNetworkingIdentity netId)>();
+
+            if (_runner == null) { Debug.LogError($"{nameof(GameManager)}: {_runner} reference is not assigned.", this); }
         }
 
-        void Start()
+        void OnDisable()
         {
-            _playing = false;
-            _client = new SteamMatchmakingClient();
+            _matchmakingClient = null;
+            _p2pClient = null;
+            _players = null;
         }
+
+        #region Matchmaking API
 
         public void CreateLobby() => StartCoroutine(CreateLobbyRoutine());
         IEnumerator CreateLobbyRoutine()
         {
-            var task = _client.Create();
+            var task = _matchmakingClient.Create();
             while (!task.IsCompleted)
                 yield return null;
             if (task.IsFaulted)
@@ -45,7 +54,7 @@ namespace Game
         public void JoinLobby(CSteamID lobbyId) => StartCoroutine(JoinLobbyRoutine(lobbyId));
         IEnumerator JoinLobbyRoutine(CSteamID lobbyId)
         {
-            var task = _client.Join(lobbyId);
+            var task = _matchmakingClient.Join(lobbyId);
             while (!task.IsCompleted)
                 yield return null;
             if (task.IsFaulted)
@@ -58,7 +67,7 @@ namespace Game
         public void LeaveLobby() => StartCoroutine(LeaveLobbyRoutine());
         IEnumerator LeaveLobbyRoutine()
         {
-            var task = _client.Leave();
+            var task = _matchmakingClient.Leave();
             while (!task.IsCompleted)
                 yield return null;
             if (task.IsFaulted)
@@ -71,8 +80,7 @@ namespace Game
         public void StartGame() => StartCoroutine(StartGameRoutine());
         IEnumerator StartGameRoutine()
         {
-            if (!_client.HasPeer) { yield break; }
-            var task = _client.StartGame();
+            var task = _matchmakingClient.StartGame();
             while (!task.IsCompleted)
                 yield return null;
             if (task.IsFaulted)
@@ -80,87 +88,54 @@ namespace Game
                 Debug.LogException(task.Exception);
                 yield break;
             }
-            var handles = task.Result;
+        }
+        #endregion
 
-            _curState = GameState.New();
-            SessionBuilder<Input, CSteamID> builder = new SessionBuilder<Input, CSteamID>().WithNumPlayers(2).WithFps(64);
-            foreach ((CSteamID id, int handle) in handles)
+        void OnStartWithPlayers(List<CSteamID> players)
+        {
+            // start connecting to all peers
+            List<SteamNetworkingIdentity> peerAddr = new List<SteamNetworkingIdentity>();
+            foreach (CSteamID id in players)
             {
-                Debug.Log($"[Game] Adding player with id {id} and handle {handle}");
-                builder.AddPlayer(new PlayerType<CSteamID> { Kind = _client.Me == id ? PlayerKind.Local : PlayerKind.Remote, Address = id }, new PlayerHandle(handle));
+                bool isLocal = id == SteamUser.GetSteamID();
+                SteamNetworkingIdentity netId = new SteamNetworkingIdentity();
+                netId.SetSteamID(id);
+                if (!isLocal) { peerAddr.Add(netId); }
             }
-            _session = builder.StartP2PSession<GameState>(_client);
-            _playing = true;
+
+            _p2pClient = new P2PClient(peerAddr);
+            _p2pClient.OnAllPeersConnected += OnAllPeersConnected;
+            _p2pClient.OnPeerDisconnected += OnPeerDisconnected;
+
+            _players.Clear();
+            for (int i = 0; i < players.Count; i++)
+            {
+                bool isLocal = players[i] == SteamUser.GetSteamID();
+                SteamNetworkingIdentity netId = new SteamNetworkingIdentity();
+                netId.SetSteamID(players[i]);
+                _players.Add((new PlayerHandle(i), isLocal ? PlayerKind.Local : PlayerKind.Remote, netId));
+            }
+
+            _p2pClient.ConnectToPeers();
         }
 
-        void FixedUpdate()
+        void OnAllPeersConnected()
         {
-            if (_client == null) { return; }
-            if (!_playing) { return; }
-            GameLoop();
+            if (_players == null)
+            {
+                throw new InvalidOperationException("players should be initialized if peers are connected");
+            }
+            _runner.Init(_players, _p2pClient);
         }
 
-        void GameLoop()
+        void OnPeerDisconnected(SteamNetworkingIdentity id)
         {
-            if (_session == null) { return; }
-            if (_waitRemaining > 0)
-            {
-                Debug.Log("[Game] Skipping frame due to wait recommendation");
-                _waitRemaining--;
-                return;
-            }
-            InputFlags f1Input = InputFlags.None;
-            if (UnityEngine.Input.GetKey(KeyCode.A))
-                f1Input |= InputFlags.Left;
-            if (UnityEngine.Input.GetKey(KeyCode.D))
-                f1Input |= InputFlags.Right;
-            if (UnityEngine.Input.GetKey(KeyCode.W))
-                f1Input |= InputFlags.Up;
+            _runner.Stop();
+        }
 
-            _session.PollRemoteClients();
-
-            foreach (RollbackEvent<Input, CSteamID> ev in _session.DrainEvents())
-            {
-                Debug.Log($"[Game] Received {ev.Kind} event");
-                switch (ev.Kind)
-                {
-                    case RollbackEventKind.WaitRecommendation:
-                        RollbackEvent<Input, CSteamID>.WaitRecommendation waitRec = ev.GetWaitRecommendation();
-                        _waitRemaining = waitRec.SkipFrames;
-                        break;
-                }
-            }
-
-            if (_session.CurrentState == SessionState.Running)
-            {
-                _session.AddLocalInput(new PlayerHandle(_client.MyHandle), new Input(f1Input));
-                try
-                {
-                    List<RollbackRequest<GameState, Input>> requests = _session.AdvanceFrame();
-                    foreach (RollbackRequest<GameState, Input> request in requests)
-                    {
-                        switch (request.Kind)
-                        {
-                            case RollbackRequestKind.SaveGameStateReq:
-                                RollbackRequest<GameState, Input>.SaveGameState saveReq = request.GetSaveGameStateReq();
-                                saveReq.Cell.Save(saveReq.Frame, _curState, _curState.Checksum());
-                                break;
-                            case RollbackRequestKind.LoadGameStateReq:
-                                _curState.Deserialize(request.GetLoadGameStateReq().Cell.State.Data);
-                                break;
-                            case RollbackRequestKind.AdvanceFrameReq:
-                                _curState.Advance(request.GetAdvanceFrameRequest().Inputs);
-                                break;
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.Log($"[Game] Exception {e}");
-                }
-            }
-
-            // TODO: render
+        void Update()
+        {
+            _runner.Tick(Time.deltaTime);
         }
     }
 }

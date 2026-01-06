@@ -1,17 +1,25 @@
 using System;
-using Game.Sim;
+using System.Buffers;
+using MemoryPack;
 using Netcode.Rollback;
 using UnityEngine;
 using Utils;
 
-namespace Game
+namespace Game.Sim
 {
-    public class GameState : IState<GameState>
+    [MemoryPackable]
+    public partial class GameState : IState<GameState>
     {
         public Frame Frame;
         public FighterState[] Fighters;
         // public HitboxState[] Hitboxes;     
         // public ProjectileState[] Projectiles; 
+
+        public GameState()
+        {
+            Frame = Frame.NullFrame;
+            Fighters = new FighterState[2];
+        }
 
         public static GameState New()
         {
@@ -22,39 +30,44 @@ namespace Game
             return state;
         }
 
-        public void Advance((Input input, InputStatus status)[] inputs)
+        public void Advance((GameInput input, InputStatus status)[] inputs)
         {
-            Fighters[0].ApplyInputs(inputs[0].input);
-            Fighters[1].ApplyInputs(inputs[1].input);
+            if (inputs.Length >= 1)
+                Fighters[0].ApplyInputs(inputs[0].input);
+            if (inputs.Length >= 2)
+                Fighters[1].ApplyInputs(inputs[1].input);
             Frame += 1;
         }
 
-        public int Deserialize(ReadOnlySpan<byte> inBytes)
+        [ThreadStatic]
+        private static ArrayBufferWriter<byte> _writer;
+        private static ArrayBufferWriter<byte> Writer
         {
-            int ptr = 0;
-            ptr += Frame.Deserialize(inBytes[ptr..]);
-            ptr += Fighters[0].Deserialize(inBytes[ptr..]);
-            ptr += Fighters[1].Deserialize(inBytes[ptr..]);
-            return ptr;
+            get
+            {
+                if (_writer == null)
+                    _writer = new ArrayBufferWriter<byte>(256);
+                return _writer;
+            }
         }
-        public int Serialize(Span<byte> outBytes)
-        {
-            int ptr = 0;
-            ptr += Frame.Serialize(outBytes[ptr..]);
-            ptr += Fighters[0].Serialize(outBytes[ptr..]);
-            ptr += Fighters[1].Serialize(outBytes[ptr..]);
-            return ptr;
-        }
-        public int SerdeSize()
-        {
-            int cnt = 0;
-            cnt += Frame.SerdeSize();
-            return cnt;
-        }
+
         public ulong Checksum()
         {
-            // TODO
-            return 0;
+            Writer.Clear();
+            MemoryPackSerializer.Serialize(Writer, this);
+            ReadOnlySpan<byte> bytes = Writer.WrittenSpan;
+
+            // 64-bit FNV-1a over the serialized bytes
+            const ulong OFFSET = 14695981039346656037UL;
+            const ulong PRIME = 1099511628211UL;
+
+            ulong hash = OFFSET;
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                hash ^= bytes[i];
+                hash *= PRIME;
+            }
+            return hash;
         }
     }
 }

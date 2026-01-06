@@ -1,5 +1,6 @@
-using UnityEditor;
+using Game;
 using Steamworks;
+using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(GameManager))]
@@ -15,13 +16,13 @@ public sealed class GameManagerEditor : Editor
         if (gm == null) return;
 
         EditorGUILayout.Space(10);
-        EditorGUILayout.LabelField("Synapse Controls", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("Matchmaking Controls", EditorStyles.boldLabel);
 
+        bool inPlayMode = Application.isPlaying;
+
+        using (new EditorGUI.DisabledScope(!inPlayMode))
         using (new EditorGUILayout.VerticalScope("box"))
         {
-            _roomId = (ulong)EditorGUILayout.LongField("Room Id", (long)_roomId);
-
-            EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Create Lobby"))
             {
                 gm.CreateLobby();
@@ -32,19 +33,18 @@ public sealed class GameManagerEditor : Editor
                 gm.JoinLobby(new CSteamID(_roomId));
             }
 
+            _roomId = (ulong)EditorGUILayout.LongField("Room Id", (long)_roomId);
+
             if (GUILayout.Button("Leave Lobby"))
             {
                 gm.LeaveLobby();
             }
-            EditorGUILayout.EndHorizontal();
-        }
 
-        using (new EditorGUILayout.VerticalScope("box"))
-        {
             if (GUILayout.Button("Start Game"))
             {
                 gm.StartGame();
             }
         }
     }
+
 }

@@ -2,7 +2,7 @@ using Utils;
 
 namespace Netcode.Rollback
 {
-    public struct GameStateCtx
+    public class GameStateCtx
     {
         public Frame Frame;
         public byte[] Data;

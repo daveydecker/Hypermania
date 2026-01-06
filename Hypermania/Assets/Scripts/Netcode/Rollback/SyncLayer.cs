@@ -1,4 +1,6 @@
 using System;
+using System.Buffers;
+using MemoryPack;
 using Netcode.Rollback.Network;
 using UnityEngine.Assertions;
 using Utils;
@@ -7,20 +9,34 @@ namespace Netcode.Rollback
 {
     public struct GameStateCell<TState> where TState : IState<TState>
     {
-        // TODO: lock?
         public GameStateCtx State;
-        public void Save(Frame frame, in TState data, ulong checksum)
+
+        [ThreadStatic]
+        private static ArrayBufferWriter<byte> _writer;
+        private static ArrayBufferWriter<byte> Writer
         {
+            get
+            {
+                if (_writer == null)
+                    _writer = new ArrayBufferWriter<byte>(256);
+                return _writer;
+            }
+        }
+
+        public void Save(Frame frame, TState data, ulong checksum)
+        {
+            Writer.Clear();
+            MemoryPackSerializer.Serialize(Writer, data);
+            int len = Writer.WrittenCount;
+
             State.Frame = frame;
-            int sz = data.SerdeSize();
-            if (State.Data == null || State.Data.Length < sz) State.Data = new byte[sz];
-            data.Serialize(State.Data);
             State.Checksum = checksum;
+            State.Data = new byte[len];
+            Writer.WrittenSpan.CopyTo(State.Data);
         }
         public void Load(out TState data)
         {
-            data = default;
-            data.Deserialize(State.Data);
+            data = MemoryPackSerializer.Deserialize<TState>(State.Data);
         }
     }
 

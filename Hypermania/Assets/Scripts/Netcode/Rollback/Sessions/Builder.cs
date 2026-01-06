@@ -214,7 +214,7 @@ namespace Netcode.Rollback.Sessions
         }
 
         public SpectatorSession<TState, TInput, TAddress> StartSpectatorSession<TState>(TAddress hostAddr, INonBlockingSocket<TAddress> socket)
-            where TState : struct
+            where TState : IState<TState>
         {
             PlayerHandle[] handles = new PlayerHandle[_numPlayers];
             for (int i = 0; i < _numPlayers; i++) { handles[i] = new PlayerHandle(i); }

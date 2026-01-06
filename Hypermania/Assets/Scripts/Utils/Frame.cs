@@ -1,10 +1,11 @@
 using System;
 using System.Buffers.Binary;
-using Netcode.Rollback;
+using MemoryPack;
 
 namespace Utils
 {
-    public struct Frame : IComparable<Frame>, IEquatable<Frame>, IFormattable, ISerializable
+    [MemoryPackable]
+    public partial struct Frame : IComparable<Frame>, IEquatable<Frame>, IFormattable, ISerializable
     {
         public int No;
         public static readonly Frame NullFrame = new Frame { No = -1 };

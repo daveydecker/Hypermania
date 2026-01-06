@@ -1,5 +1,6 @@
-
 using System;
+using System.Buffers.Binary;
+using MemoryPack;
 using UnityEngine;
 using Utils;
 
@@ -15,12 +16,14 @@ namespace Game.Sim
         Knockdown,
     }
 
-    public struct FighterState : ISerializable
+    [MemoryPackable]
+    public partial struct FighterState
     {
         public Vector2 Position;
         public Vector2 Velocity;
         public float Speed;
 
+        [MemoryPackIgnore]
         public FighterMode Mode
         {
             get { return _mode; }
@@ -30,7 +33,10 @@ namespace Game.Sim
                 _modeT = 0;
             }
         }
+
+        [MemoryPackInclude]
         private FighterMode _mode;
+        [MemoryPackInclude]
         private int _modeT;
 
         public Vector2 FacingDirection;
@@ -45,7 +51,7 @@ namespace Game.Sim
             FacingDirection = facingDirection;
         }
 
-        public void ApplyInputs(Input input)
+        public void ApplyInputs(GameInput input)
         {
             // Horizontal movement
             Velocity.x = 0;
@@ -81,21 +87,6 @@ namespace Game.Sim
                 if (Velocity.y < 0)
                     Velocity.y = 0;
             }
-        }
-
-        public int Deserialize(ReadOnlySpan<byte> inBytes)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int Serialize(Span<byte> outBytes)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int SerdeSize()
-        {
-            throw new NotImplementedException();
         }
     }
 }

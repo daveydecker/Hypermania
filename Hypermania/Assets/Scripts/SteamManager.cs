@@ -116,11 +116,15 @@ public class SteamManager : MonoBehaviour {
 		// Valve's documentation for this is located here:
 		// https://partner.steamgames.com/doc/sdk/api#initialization_and_shutdown
 		m_bInitialized = SteamAPI.Init();
+
 		if (!m_bInitialized) {
 			Debug.LogError("[Steamworks.NET] SteamAPI_Init() failed. Refer to Valve's documentation or the comment above this line for more information.", this);
 
 			return;
 		}
+
+		// Also initialize the relay network access for our peer to peer connections
+        SteamNetworkingUtils.InitRelayNetworkAccess();
 
 		s_EverInitialized = true;
 	}
