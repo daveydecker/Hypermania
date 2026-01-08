@@ -204,12 +204,21 @@ namespace Game.Sim
                 }
                 Vector2 sizeLocal = box.SizeLocal;
                 Vector2 centerWorld = Position + centerLocal;
-                physics.AddBox(handle, centerWorld, sizeLocal, box.Props);
+                BoxProps newProps = box.Props;
+                if (FacingDir == FighterFacing.Left)
+                {
+                    newProps.Knockback.x *= -1;
+                }
+                physics.AddBox(handle, centerWorld, sizeLocal, newProps);
             }
         }
 
         public void ApplyHit(BoxProps props)
         {
+            if (Mode == FighterMode.Hitstun)
+            {
+                return;
+            }
             Mode = FighterMode.Hitstun;
             // We add + 1 here: ApplyHit is called after applying inputs but before ticking the state machine. If
             // hitStun = 1, that means we would immediately make the player actionable next frame, so we additionally

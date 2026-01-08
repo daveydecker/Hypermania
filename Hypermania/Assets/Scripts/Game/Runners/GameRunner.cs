@@ -73,6 +73,10 @@ namespace Game.Runners
                         continue;
 
                     Vector2 centerLocal = box.CenterLocal;
+                    if (_curState.Fighters[i].FacingDir == FighterFacing.Left)
+                    {
+                        centerLocal.x *= -1;
+                    }
                     Vector2 sizeLocal = box.SizeLocal;
 
                     Vector3 centerWorld = t.TransformPoint(new Vector3(centerLocal.x, centerLocal.y, 0f));
