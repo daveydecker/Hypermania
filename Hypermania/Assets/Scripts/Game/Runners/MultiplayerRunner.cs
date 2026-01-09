@@ -14,26 +14,16 @@ namespace Game.Runners
     {
         private P2PSession<GameState, GameInput, SteamNetworkingIdentity> _session;
 
-        private bool _initialized;
         private uint _waitRemaining;
         private PlayerHandle _myHandle;
-        private float _time;
-        private InputBuffer _inputBuffer;
 
         public override void Init(
             List<(PlayerHandle playerHandle, PlayerKind playerKind, SteamNetworkingIdentity address)> players,
             P2PClient client
         )
         {
-            // TODO: take in character selections from matchmaking/lobby
-            CharacterConfig sampleConfig = _config.Get(Character.SampleFighter);
-            _characters = new CharacterConfig[players.Count];
-            for (int i = 0; i < players.Count; i++)
-            {
-                _characters[i] = sampleConfig;
-            }
+            base.Init(players, client);
 
-            _curState = GameState.Create(_characters);
             SessionBuilder<GameInput, SteamNetworkingIdentity> builder = new SessionBuilder<
                 GameInput,
                 SteamNetworkingIdentity
@@ -52,11 +42,7 @@ namespace Game.Runners
                 );
             }
             _session = builder.StartP2PSession<GameState>(client);
-            _inputBuffer = new InputBuffer();
-            _view.Init(_characters);
             _waitRemaining = 0;
-            _time = 0;
-            _initialized = true;
 
             if (_myHandle.Id == -1)
             {
@@ -66,15 +52,10 @@ namespace Game.Runners
 
         public override void DeInit()
         {
-            _initialized = false;
-            _time = 0;
             _waitRemaining = 0;
-            _view.DeInit();
-            _inputBuffer = null;
             _session = null;
             _myHandle = new PlayerHandle(-1);
-            _curState = null;
-            _characters = null;
+            base.DeInit();
         }
 
         public override void Poll(float deltaTime)

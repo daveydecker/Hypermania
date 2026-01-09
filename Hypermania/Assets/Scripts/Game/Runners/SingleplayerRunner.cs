@@ -12,24 +12,13 @@ namespace Game.Runners
     public class SingleplayerRunner : GameRunner
     {
         protected SyncTestSession<GameState, GameInput, SteamNetworkingIdentity> _session;
-        protected bool _initialized;
-        protected float _time;
-        private InputBuffer _inputBuffer;
 
         public override void Init(
             List<(PlayerHandle playerHandle, PlayerKind playerKind, SteamNetworkingIdentity address)> players,
             P2PClient client
         )
         {
-            // TODO: take in character selections from matchmaking/lobby
-            CharacterConfig sampleConfig = _config.Get(Character.SampleFighter);
-            _characters = new CharacterConfig[players.Count];
-            for (int i = 0; i < players.Count; i++)
-            {
-                _characters[i] = sampleConfig;
-            }
-
-            _curState = GameState.Create(_characters);
+            base.Init(players, client);
             SessionBuilder<GameInput, SteamNetworkingIdentity> builder = new SessionBuilder<
                 GameInput,
                 SteamNetworkingIdentity
@@ -48,21 +37,12 @@ namespace Game.Runners
                 );
             }
             _session = builder.StartSynctestSession<GameState>();
-            _inputBuffer = new InputBuffer();
-            _view.Init(_characters);
-            _time = 0;
-            _initialized = true;
         }
 
         public override void DeInit()
         {
-            _initialized = false;
-            _time = 0;
-            _view.DeInit();
-            _inputBuffer = null;
             _session = null;
-            _curState = null;
-            _characters = null;
+            base.DeInit();
         }
 
         public override void Poll(float deltaTime)

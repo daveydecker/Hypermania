@@ -62,6 +62,7 @@ namespace Game.Sim
 
         public Frame Frame;
         public FighterState[] Fighters;
+        public ManiaState[] Manias;
 
         /// <summary>
         /// Use this static builder instead of the constructor for creating new GameStates. This is because MemoryPack,
@@ -75,11 +76,20 @@ namespace Game.Sim
             GameState state = new GameState();
             state.Frame = Frame.FirstFrame;
             state.Fighters = new FighterState[characters.Length];
+            state.Manias = new ManiaState[characters.Length];
             for (int i = 0; i < characters.Length; i++)
             {
                 sfloat xPos = i - ((sfloat)characters.Length - 1) / 2;
                 FighterFacing facing = xPos > 0 ? FighterFacing.Left : FighterFacing.Right;
                 state.Fighters[i] = FighterState.Create(new SVector2(xPos, sfloat.Zero), facing);
+                state.Manias[i] = ManiaState.Create(
+                    new ManiaConfig
+                    {
+                        NumKeys = 4,
+                        HitHalfRange = 4,
+                        MissHalfRange = 3,
+                    }
+                );
             }
             return state;
         }
