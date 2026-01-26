@@ -20,8 +20,12 @@ namespace Game.View
         public GameObject HealthbarPrefab;
         private GameObject[] _healthbars;
         public Canvas canvas;
+        private float Zoom = 5f;
 
         public ManiaViewConfig Config;
+
+        [SerializeField]
+        private DJ_CameraControl CameraControl;
 
         public void Init(CharacterConfig[] characters)
         {
@@ -84,6 +88,19 @@ namespace Game.View
                 }
                 healthbarScript.SetHealth((int) state.Fighters[i].Health);
             }
+            // Debug testing for zoom, remove later
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                if (Zoom == 5f)
+                {
+                    Zoom = 4f;
+                }
+                else
+                {
+                    Zoom = 5f;
+                }
+            }
+            CameraControl.UpdateCamera(interestPoints, Zoom, Time.deltaTime);
         }
 
         public void DeInit()
