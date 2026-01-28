@@ -1,5 +1,6 @@
 using System;
 using System.Buffers.Binary;
+using System.Runtime.CompilerServices;
 using Netcode.Rollback;
 
 namespace Game.Sim
@@ -37,6 +38,12 @@ namespace Game.Sim
         public GameInput(InputFlags flags)
         {
             Flags = flags;
+        }
+
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
+        public bool HasInput(InputFlags input)
+        {
+            return (Flags & input) != 0;
         }
     }
 

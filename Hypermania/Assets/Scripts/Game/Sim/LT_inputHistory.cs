@@ -1,54 +1,58 @@
-﻿using UnityEngine;
-using MemoryPack;
+﻿using MemoryPack;
 
 namespace Game.Sim
 {
     [MemoryPackable]
     public partial class LT_inputHistory
     {
-        public GameInput[] buffer;
-        public int front;
-        public int count;
+        [MemoryPackInclude]
+        private GameInput[] _buffer;
+
+        [MemoryPackInclude]
+        private int _front;
+
+        [MemoryPackInclude]
+        private int _count;
 
         // The structure of this input history follows a circular array / buffer, for constant access times to previos frames.
         // We only add on the last frame at the end, for constant O(1) time.
-        public static LT_inputHistory Create()
+        public LT_inputHistory()
         {
-            LT_inputHistory history = new LT_inputHistory();
-            history.buffer = new GameInput[64];
-            history.front = 0;
-            history.count = 0;
-            return history;
+            _buffer = new GameInput[64];
+            _front = 0;
+            _count = 0;
         }
-        public void push(GameInput input)
+
+        public void PushInput(GameInput input)
         {
-            buffer[front] = input;
-            front = (front + 1) % buffer.Length;
-            if (count < buffer.Length)
+            _buffer[_front] = input;
+            _front = (_front + 1) % _buffer.Length;
+            if (_count < _buffer.Length)
             {
-                count = count + 1;
+                _count = _count + 1;
             }
         }
 
-        public GameInput getInput(int framesAgo)
+        public GameInput GetInput(int framesAgo)
         {
-            if (framesAgo < 0 || framesAgo >= count)
+            if (framesAgo < 0 || framesAgo >= _count)
             {
                 return new GameInput(InputFlags.None);
             }
-            int idx = (front - 1 - framesAgo + buffer.Length) % buffer.Length;
-            return buffer[idx];
+            int idx = (_front - 1 - framesAgo + _buffer.Length) % _buffer.Length;
+            return _buffer[idx];
         }
+
         // Checks if the button was pressed within the last couple of frames.
-        public bool isHeldRecently(InputFlags flag, int withinFrames)
+        public bool PressedRecently(InputFlags flag, int withinFrames)
         {
-            if (withinFrames < 0 || withinFrames >= count)
+            if (withinFrames < 0 || withinFrames >= _count)
             {
                 return false;
             }
             for (int i = 0; i < withinFrames; i++)
             {
-                if ((getInput(i).Flags & flag) == flag)
+                if (GetInput(i).HasInput(flag))
                 {
                     return true;
                 }
@@ -57,22 +61,22 @@ namespace Game.Sim
         }
 
         // Was the key ever pressed and then released in this frame of time?
-        public bool wasTyped(InputFlags flag, int withinFrames)
+        public bool PressedAndReleasedRecently(InputFlags flag, int withinFrames)
         {
-            if (withinFrames < 0 || withinFrames >= count)
+            if (withinFrames < 0 || withinFrames >= _count)
             {
                 return false;
             }
             bool beingPressed = false;
             for (int i = withinFrames - 1; i >= 0; i--)
             {
-                if ((getInput(i).Flags & flag) == flag && !beingPressed)
+                if (GetInput(i).HasInput(flag) && !beingPressed)
                 {
                     beingPressed = true;
                     continue;
                 }
 
-                if ((getInput(i).Flags & flag) != flag && beingPressed)
+                if (GetInput(i).HasInput(flag) && beingPressed)
                 {
                     return true;
                 }
@@ -81,17 +85,16 @@ namespace Game.Sim
         }
 
         // Was an input held for a long enough period of time?
-        public bool wasHeld(InputFlags flag, int framesLong, int withinFrames)
+        public bool HeldRecently(InputFlags flag, int framesLong, int withinFrames)
         {
-            if (withinFrames < 0 || withinFrames >= count)
+            if (withinFrames < 0 || withinFrames >= _count)
             {
                 return false;
             }
             int heldCount = 0;
             for (int i = withinFrames - 1; i >= 0; i--)
             {
-                Debug.Log(heldCount);
-                if ((getInput(i).Flags & flag) == flag)
+                if (GetInput(i).HasInput(flag))
                 {
                     heldCount++;
                     if (heldCount >= framesLong)
@@ -99,7 +102,8 @@ namespace Game.Sim
                         return true;
                     }
                     continue;
-                } else
+                }
+                else
                 {
                     heldCount = 0;
                 }
