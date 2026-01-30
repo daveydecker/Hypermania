@@ -28,6 +28,9 @@ namespace Game.View
         [SerializeField]
         private CameraControl CameraControl;
 
+        [SerializeField]
+        private ComboCountView[] ComboViews;
+
         public void OnValidate()
         {
             if (Healthbars == null)
@@ -75,7 +78,7 @@ namespace Game.View
                 _fighters[i].Init(characters[i]);
 
                 Manias[i].Init();
-                Healthbars[i].SetMaxHealth(characters[i].Health);
+                Healthbars[i].SetMaxHealth((float)characters[i].Health);
             }
             _conductor.Init();
         }
@@ -114,6 +117,12 @@ namespace Game.View
             }
             CameraControl.UpdateCamera(interestPoints, Zoom, Time.deltaTime);
             FighterIndicatorManager.Track(_fighters);
+
+            for (int i = 0; i < _characters.Length; i++)
+            {
+                int combo = state.Fighters[i ^ 1].ComboedCount;
+                ComboViews[i].SetComboCount(combo);
+            }
         }
 
         public void DeInit()
