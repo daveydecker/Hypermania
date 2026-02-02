@@ -137,8 +137,13 @@ namespace Game.Runners
                 DeInit();
                 return;
             }
-
-            _view.Render(_curState, _config);
+            NC_InfoOverlayDetails details = new NC_InfoOverlayDetails
+            {
+                FPS = 60, // ephermal
+                HasPing = true,
+                PingMs = _session.NetworkStats(new PlayerHandle(1)).Ping,
+            };
+            _view.Render(_curState, _config, details);
         }
     }
 }

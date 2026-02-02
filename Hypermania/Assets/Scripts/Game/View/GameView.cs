@@ -31,6 +31,8 @@ namespace Game.View
         [SerializeField]
         private ComboCountView[] ComboViews;
 
+        [SerializeField]
+        private NC_InfoOverlayView _overlayView;
         public void OnValidate()
         {
             if (Healthbars == null)
@@ -83,7 +85,7 @@ namespace Game.View
             _conductor.Init();
         }
 
-        public void Render(in GameState state, GlobalConfig config)
+        public void Render(in GameState state, GlobalConfig config, NC_InfoOverlayDetails overlayDetails)
         {
             for (int i = 0; i < _characters.Length; i++)
             {
@@ -111,6 +113,7 @@ namespace Game.View
                 int combo = state.Fighters[i ^ 1].ComboedCount;
                 ComboViews[i].SetComboCount(combo);
             }
+            _overlayView.Render(overlayDetails);
         }
 
         public void DeInit()

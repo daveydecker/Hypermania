@@ -98,8 +98,13 @@ namespace Game.Runners
                 DeInit();
                 return;
             }
-
-            _view.Render(_curState, _config);
+            NC_InfoOverlayDetails details = new NC_InfoOverlayDetails
+            {
+                FPS = 60, // ephermal
+                HasPing = false,
+                PingMs = 0,
+            };
+            _view.Render(_curState, _config, details);
         }
     }
 }
