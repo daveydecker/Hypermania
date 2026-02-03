@@ -388,9 +388,49 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 383011995228381523, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_BoneTransforms.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 578404796973238768, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.47217268
+      objectReference: {fileID: 0}
+    - target: {fileID: 578404796973238768, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.4022819
+      objectReference: {fileID: 0}
+    - target: {fileID: 770056444394384376, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 770056444394384376, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1654446923284136187, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_SpriteHash
+      value: 854607838
+      objectReference: {fileID: 0}
+    - target: {fileID: 1790111635973874263, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.73910236
+      objectReference: {fileID: 0}
+    - target: {fileID: 1790111635973874263, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.6735931
+      objectReference: {fileID: 0}
     - target: {fileID: 3044627626071662498, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
       propertyPath: m_Name
       value: Nythea
+      objectReference: {fileID: 0}
+    - target: {fileID: 3239751068026203513, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.96693707
+      objectReference: {fileID: 0}
+    - target: {fileID: 3239751068026203513, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.25501513
       objectReference: {fileID: 0}
     - target: {fileID: 4217807302454724545, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
       propertyPath: m_LocalPosition.x
@@ -430,6 +470,90 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4217807302454724545, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4295554387098312082, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 4295554387098312082, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4427937632854641376, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_SpriteHash
+      value: 370962521
+      objectReference: {fileID: 0}
+    - target: {fileID: 4451101483078523816, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_BoneTransforms.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5338344087269205370, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_BoneTransforms.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5723221503183704470, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.99955744
+      objectReference: {fileID: 0}
+    - target: {fileID: 5723221503183704470, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5723221503183704470, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5723221503183704470, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.02975008
+      objectReference: {fileID: 0}
+    - target: {fileID: 5723221503183704470, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 3.41
+      objectReference: {fileID: 0}
+    - target: {fileID: 5948117931532068505, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5948117931532068505, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5961722854920360697, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_SpriteHash
+      value: 1008318484
+      objectReference: {fileID: 0}
+    - target: {fileID: 6291021350905012992, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_BoneTransforms.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6679704535447715646, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_SpriteHash
+      value: 155296642
+      objectReference: {fileID: 0}
+    - target: {fileID: 7494021480789786504, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_labelHash
+      value: 0.00163576
+      objectReference: {fileID: 0}
+    - target: {fileID: 7494021480789786504, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_CategoryHash
+      value: 0.0054194718
+      objectReference: {fileID: 0}
+    - target: {fileID: 7722070822784974639, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.84772795
+      objectReference: {fileID: 0}
+    - target: {fileID: 7722070822784974639, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.53043133
+      objectReference: {fileID: 0}
+    - target: {fileID: 8654886302559568392, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8654886302559568392, guid: 692614c6f0138c5709de58dbca0159e4, type: 3}
+      propertyPath: m_WasSpriteAssigned
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
